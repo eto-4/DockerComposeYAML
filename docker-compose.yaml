@@ -1,0 +1,41 @@
+version: "3"
+
+services:
+    mysql:
+        # Config del contenidor de la bd
+        image: mysql
+        
+        # Config de la xarxa
+        networks:
+            app_net:
+                ipv4_address: 172.20.0.10
+
+        # Config var.Entorn
+        enviroment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: todo
+            MYSQL_USER: username
+            MYSQL_PASSWORD: username123
+
+    php:
+        # Config del contenidor PHP - Apache
+        image: php:7-apache
+        networks:
+            app_net:
+                ipv4_address: 172.20.0.15
+
+nertowks:
+    app_net:
+        # Configuració de les Ip fixes
+        driver: bridge
+        ipam:
+            config:
+                # Rang de la xarxa   
+                - subnet: 172.20.0.0/16
+
+volumes:
+    mysql_data:
+        # Persistencia de dades
+        - mysql_data:/var/lib/mysql
+        - ./sql:/docker-entrypoint-initdb.d
+    
