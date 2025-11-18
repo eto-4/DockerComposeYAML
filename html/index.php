@@ -231,8 +231,8 @@
             <?php
             // Configuració de connexió a la base de dades
             $servername = "172.20.0.10"; // IP estática del contenidor MySQL
-            $username = "username";
-            $password = "username123";
+            $username = "juanito";
+            $password = "1234";
             $database = "magatzem";
             
             // Crear connexió
