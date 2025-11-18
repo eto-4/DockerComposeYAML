@@ -1,30 +1,56 @@
-version: "3"
+version: "3.8"
 
 services:
     mysql:
         # Config del contenidor de la bd
-        image: mysql
+        image: mysql:8.0
+        container_name: mysql_container
         
         # Config de la xarxa
         networks:
             app_net:
                 ipv4_address: 172.20.0.10
 
-        # Config var.Entorn
-        enviroment:
+        # Config var.Entorn (CORREGIDO: environment, no enviroment)
+        environment:
             MYSQL_ROOT_PASSWORD: root
-            MYSQL_DATABASE: todo
-            MYSQL_USER: username
-            MYSQL_PASSWORD: username123
+            MYSQL_DATABASE: magatzem
+            MYSQL_USER: juanito
+            MYSQL_PASSWORD: 1234
+        
+        volumes:
+            - mysql_data:/var/lib/mysql
+            - ./sql:/docker-entrypoint-initdb.d
+        restart: unless-stopped
 
     php:
         # Config del contenidor PHP - Apache
-        image: php:7-apache
+        image: php:7.4-apache
+        container_name: php_apache
+        ports:
+            - "8888:80"
+        
+        # Volums del contenidor
+        volumes:
+            - ./html:/var/www/html
+            - ./docker/php-init.sh:/usr/local/bin/php-init.sh
+        
+        # Dependencies
+        depends_on:
+            - mysql
+
+        # Nomes reiniciar quan el contenidor es pari
+        restart: unless-stopped
+
+        # Comanda
+        command: ["sh", "/usr/local/bin/php-init.sh"]
+
         networks:
             app_net:
                 ipv4_address: 172.20.0.15
 
-nertowks:
+# CORREGIDO: networks, no nertowks
+networks:
     app_net:
         # Configuració de les Ip fixes
         driver: bridge
@@ -34,8 +60,5 @@ nertowks:
                 - subnet: 172.20.0.0/16
 
 volumes:
+    # CORREGIDO: Solo definir el volumen, no rutas adicionales
     mysql_data:
-        # Persistencia de dades
-        - mysql_data:/var/lib/mysql
-        - ./sql:/docker-entrypoint-initdb.d
-    
