@@ -88,6 +88,10 @@
             margin-top: 0.5rem;
         }
 
+        .status-error {
+            background: #e53e3e;
+        }
+
         .ip-display {
             background: #edf2f7;
             padding: 1rem;
@@ -143,6 +147,61 @@
             font-size: 0.9rem;
         }
 
+        .productes-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .productes-table th,
+        .productes-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .productes-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .productes-table tr:hover {
+            background: #f7fafc;
+        }
+
+        .preu {
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .producte-id {
+            color: #718096;
+            font-weight: 600;
+        }
+
+        .error-message {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #e53e3e;
+        }
+
+        .success-message {
+            background: #c6f6d5;
+            color: #276749;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #48bb78;
+        }
+
         @media (max-width: 768px) {
             .content-grid {
                 grid-template-columns: 1fr;
@@ -151,6 +210,15 @@
             .header h1 {
                 font-size: 2rem;
             }
+
+            .productes-table {
+                font-size: 0.9rem;
+            }
+
+            .productes-table th,
+            .productes-table td {
+                padding: 8px 10px;
+            }
         }
     </style>
 </head>
@@ -158,25 +226,85 @@
     <div class="container">
         <!-- Capçalera -->
         <header class="header">
-            <h1>🎯 Aplicació Web amb Base de Dades</h1>
-            <p>Contenidors Docker amb configuració personalitzada</p>
-            <div class="status-badge">SISTEMA OPERATIU</div>
+            <h1>🎯 Magatzem - Gestió de Productes</h1>
+            <p>Sistema de gestió amb PHP, MySQL i Docker</p>
+            <?php
+            // Configuració de connexió a la base de dades
+            $servername = "172.20.0.10"; // IP estática del contenidor MySQL
+            $username = "username";
+            $password = "username123";
+            $database = "magatzem";
+            
+            // Crear connexió
+            $conn = new mysqli($servername, $username, $password, $database);
+            
+            // Verificar connexió
+            if ($conn->connect_error) {
+                echo '<div class="status-badge status-error">❌ ERROR CONNEXIÓ BD</div>';
+            } else {
+                echo '<div class="status-badge">✅ SISTEMA OPERATIU</div>';
+            }
+            ?>
         </header>
 
         <!-- Contingut Principal -->
         <div class="content-grid">
+            <!-- Targeta de Productes -->
+            <div class="card">
+                <h2>📦 Llista de Productes</h2>
+                <div class="ip-display">
+                    <strong>Base de Dades:</strong> magatzem | <strong>Taula:</strong> productes
+                </div>
+                
+                <?php
+                if (!$conn->connect_error) {
+                    // Consultar productes
+                    $sql = "SELECT * FROM productes ORDER BY idp";
+                    $result = $conn->query($sql);
+                    
+                    if ($result && $result->num_rows > 0) {
+                        echo '<div class="success-message">';
+                        echo '✅ ' . $result->num_rows . ' productes trobats';
+                        echo '</div>';
+                        
+                        echo '<table class="productes-table">';
+                        echo '<thead><tr><th>ID</th><th>Producte</th><th>Preu (€)</th></tr></thead>';
+                        echo '<tbody>';
+                        
+                        while($row = $result->fetch_assoc()) {
+                            echo '<tr>';
+                            echo '<td class="producte-id">#' . $row["idp"] . '</td>';
+                            echo '<td>' . htmlspecialchars($row["nomarticle"]) . '</td>';
+                            echo '<td class="preu">' . number_format($row["preu"], 2) . ' €</td>';
+                            echo '</tr>';
+                        }
+                        
+                        echo '</tbody></table>';
+                    } else {
+                        echo '<div class="error-message">';
+                        echo '❌ No s\'han trobat productes o hi ha un error en la consulta';
+                        echo '</div>';
+                    }
+                } else {
+                    echo '<div class="error-message">';
+                    echo '❌ No es pot connectar a la base de dades: ' . $conn->connect_error;
+                    echo '</div>';
+                }
+                ?>
+            </div>
+
             <!-- Targeta d'Informació del Servidor Web -->
             <div class="card">
                 <h2>🌐 Servidor Web</h2>
                 <div class="ip-display">
-                    <strong>IP Estàtica:</strong> 192.168.100.20
+                    <strong>IP Estàtica:</strong> 172.20.0.15
                 </div>
-                <p>Aquest servidor està executant Nginx i serveix les pàgines web estàtiques. La configuració inclou:</p>
+                <p>Aquest servidor està executant PHP-Apache i connecta amb la base de dades MySQL. La configuració inclou:</p>
                 <ul class="features-list">
-                    <li>Servidor web d'alt rendiment</li>
-                    <li>Suport per a contingut estàtic</li>
-                    <li>Configuració personalitzada</li>
-                    <li>Logs en temps real</li>
+                    <li>Servidor web Apache amb PHP 7.4</li>
+                    <li>Connexió MySQL amb mysqli</li>
+                    <li>Contenidor Docker amb IP estàtica</li>
+                    <li>Port 80 mapejat al 8888 de l'host</li>
                 </ul>
             </div>
 
@@ -184,28 +312,32 @@
             <div class="card">
                 <h2>🗃️ Base de Dades</h2>
                 <div class="ip-display">
-                    <strong>IP Estàtica:</strong> 192.168.100.10
+                    <strong>IP Estàtica:</strong> 172.20.0.10
                 </div>
                 <p>El servidor de base de dades MySQL està configurat amb:</p>
                 <ul class="features-list">
-                    <li>Base de dades inicialitzada automàticament</li>
-                    <li>Usuaris i permisos configurats</li>
-                    <li>Dades de exemple carregades</li>
+                    <li>Base de dades: magatzem</li>
+                    <li>Taula: productes (5 registres)</li>
+                    <li>Usuari: username</li>
                     <li>Connexions des de la xarxa interna</li>
                 </ul>
-            </div>
-
-            <!-- Targeta de Configuració -->
-            <div class="card">
-                <h2>⚙️ Configuració</h2>
-                <p>Aquesta aplicació està desplegada utilitzant Docker Compose amb les següents característiques:</p>
-                <ul class="features-list">
-                    <li>Xarxa personalitzada Docker</li>
-                    <li>IPs estàtiques assignades</li>
-                    <li>Volums persistents</li>
-                    <li>Configuració en entorn de producció</li>
-                    <li>Reinici automàtic en fallades</li>
-                </ul>
+                
+                <?php
+                if (!$conn->connect_error) {
+                    // Estadístiques de la base de dades
+                    $stats_sql = "SELECT COUNT(*) as total, SUM(preu) as valor_total, AVG(preu) as preu_mitja FROM productes";
+                    $stats_result = $conn->query($stats_sql);
+                    
+                    if ($stats_result && $stats_row = $stats_result->fetch_assoc()) {
+                        echo '<div style="margin-top: 1rem; padding: 1rem; background: #f0fff4; border-radius: 8px;">';
+                        echo '<h3 style="color: #2d3748; margin-bottom: 0.5rem;">📊 Estadístiques</h3>';
+                        echo '<p><strong>Total productes:</strong> ' . $stats_row['total'] . '</p>';
+                        echo '<p><strong>Valor total:</strong> ' . number_format($stats_row['valor_total'], 2) . ' €</p>';
+                        echo '<p><strong>Preu mitjà:</strong> ' . number_format($stats_row['preu_mitja'], 2) . ' €</p>';
+                        echo '</div>';
+                    }
+                }
+                ?>
             </div>
         </div>
 
@@ -213,12 +345,24 @@
         <footer class="footer">
             <div class="tech-stack">
                 <span class="tech-item">Docker</span>
-                <span class="tech-item">Nginx</span>
+                <span class="tech-item">PHP 7.4</span>
+                <span class="tech-item">Apache</span>
                 <span class="tech-item">MySQL</span>
-                <span class="tech-item">HTML5</span>
-                <span class="tech-item">CSS3</span>
+                <span class="tech-item">MySQLi</span>
             </div>
-            <p>📊 <strong>Estat del sistema:</strong> Tots els serveis estan operatius i funcionant correctament</p>
+            <?php
+            if (!$conn->connect_error) {
+                echo '<p>📊 <strong>Estat del sistema:</strong> Tots els serveis estan operatius</p>';
+                echo '<p>🔗 <strong>Connexió BD:</strong> Establerta correctament</p>';
+            } else {
+                echo '<p>📊 <strong>Estat del sistema:</strong> Error de connexió a la base de dades</p>';
+            }
+            
+            // Tancar connexió
+            if (isset($conn) && !$conn->connect_error) {
+                $conn->close();
+            }
+            ?>
             <p>🕐 Última actualització: <span id="current-time"></span></p>
         </footer>
     </div>

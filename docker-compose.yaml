@@ -11,7 +11,6 @@ services:
             app_net:
                 ipv4_address: 172.20.0.10
 
-        # Config var.Entorn (CORREGIDO: environment, no enviroment)
         environment:
             MYSQL_ROOT_PASSWORD: root
             MYSQL_DATABASE: magatzem
@@ -49,7 +48,6 @@ services:
             app_net:
                 ipv4_address: 172.20.0.15
 
-# CORREGIDO: networks, no nertowks
 networks:
     app_net:
         # Configuració de les Ip fixes
@@ -60,5 +58,4 @@ networks:
                 - subnet: 172.20.0.0/16
 
 volumes:
-    # CORREGIDO: Solo definir el volumen, no rutas adicionales
     mysql_data:
